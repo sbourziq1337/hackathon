@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2020 AI Agent — Triage Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; color: #1a1a2e; background: #fff; padding: 30px 40px; font-size: 13px; line-height: 1.5; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #e94560; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 20px; color: #e94560; }
+        .header .meta { text-align: right; font-size: 11px; color: #555; }
+        .badge { display: inline-block; padding: 6px 18px; border-radius: 6px; font-weight: bold; font-size: 14px; color: #fff; margin: 8px 0 15px; }
+        .badge-CRITICAL { background: #d32f2f; }
+        .badge-HIGH { background: #f57c00; }
+        .badge-MODERATE { background: #fbc02d; color: #333; }
+        .badge-LOW { background: #388e3c; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 25px; margin-bottom: 15px; }
+        .grid .item { display: flex; gap: 6px; }
+        .grid .label { font-weight: 600; color: #555; min-width: 130px; }
+        .section { margin-bottom: 14px; }
+        .section h2 { font-size: 13px; color: #e94560; border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 6px; }
+        .section p { margin-bottom: 4px; }
+        .callout { background: #f8f8fc; border-left: 4px solid #e94560; padding: 10px 14px; margin-bottom: 15px; }
+        .callback-box { display: inline-block; padding: 6px 14px; border-radius: 5px; font-weight: bold; margin: 6px 0; }
+        .callback-yes { background: #ffebee; color: #d32f2f; border: 1px solid #d32f2f; }
+        .callback-no { background: #e8f5e9; color: #388e3c; border: 1px solid #388e3c; }
+        .footer { margin-top: 25px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px; color: #999; text-align: center; }
+        .transcript { background: #f5f5f5; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px; white-space: pre-wrap; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; font-size: 11px; }
+        th { background: #f0f0f5; }
+        .bar-chart { margin: 12px 0; }
+        .bar-row { display: flex; align-items: center; margin-bottom: 5px; }
+        .bar-label { width: 85px; font-weight: 600; font-size: 11px; }
+        .bar-track { flex: 1; height: 18px; background: #eee; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 6px; font-size: 10px; font-weight: 600; color: #fff; min-width: 22px; }
+        .bar-CRITICAL { background: #d32f2f; }
+        .bar-HIGH { background: #f57c00; }
+        .bar-MODERATE { background: #fbc02d; color: #333; }
+        .bar-LOW { background: #388e3c; }
+    </style>
+</head>
+<body>
+
+{% if report %}
+<div class="header">
+    <h1>&#9888; Emergency Intake Report</h1>
+    <div class="meta">
+        <div><strong>ID:</strong> {{ report.report_id }}</div>
+        <div><strong>Time:</strong> {{ report.timestamp }}</div>
+        <div><strong>Source:</strong> {{ report.input_source.value }}</div>
+    </div>
+</div>
+
+<div class="badge badge-{{ report.severity.value }}">
+    {{ report.severity.value }} — Priority {{ report.estimated_response_priority }}/10
+</div>
+
+<div class="callback-box {{ 'callback-yes' if report.needs_human_callback else 'callback-no' }}">
+    {% if report.needs_human_callback %}&#128680; HUMAN CALLBACK REQUIRED — Status: {{ report.callback_status.value }}{% else %}&#9989; Logged — callback optional{% endif %}
+</div>
+
+<div class="section">
+    <h2>Patient Information</h2>
+    <div class="grid">
+        <div class="item"><span class="label">Name:</span> {{ report.patient_name or "Not provided" }}</div>
+        <div class="item"><span class="label">Age:</span> {{ report.age if report.age is not none else "Unknown" }}</div>
+        <div class="item"><span class="label">Gender:</span> {{ report.gender or "Not provided" }}</div>
+        <div class="item"><span class="label">Phone:</span> {{ report.caller_phone or "N/A" }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Safety Assessment</h2>
+    <div class="grid">
+        <div class="item"><span class="label">Conscious:</span> {{ "Yes" if report.is_conscious else ("NO" if report.is_conscious == false else "Unknown") }}</div>
+        <div class="item"><span class="label">Breathing:</span> {{ "Yes" if report.is_breathing else ("NO" if report.is_breathing == false else "Unknown") }}</div>
+        <div class="item"><span class="label">Heavy Bleeding:</span> {{ "YES" if report.has_heavy_bleeding else ("No" if report.has_heavy_bleeding == false else "Unknown") }}</div>
+        <div class="item"><span class="label">Trapped:</span> {{ "YES" if report.is_trapped else ("No" if report.is_trapped == false else "Unknown") }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Location & Situation</h2>
+    <div class="grid">
+        <div class="item"><span class="label">Location:</span> {{ report.location or "Not provided" }}</div>
+        <div class="item"><span class="label">Indoor/Outdoor:</span> {{ report.indoor_outdoor or "Unknown" }}</div>
+        <div class="item"><span class="label">Disaster:</span> {{ report.disaster_type or "Not specified" }}</div>
+        <div class="item"><span class="label">Victims:</span> {{ report.num_victims if report.num_victims is not none else "Unknown" }}</div>
+        <div class="item"><span class="label">Dangers:</span> {{ report.environmental_dangers or "None reported" }}</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Situation Description</h2>
+    <div class="callout">{{ report.situation_description }}</div>
+</div>
+
+<div class="section">
+    <h2>AI Classification</h2>
+    <p><strong>Reasoning:</strong> {{ report.reasoning }}</p>
+    <p><strong>Confidence:</strong> {{ "%.0f"|format(report.confidence * 100) }}%</p>
+    <p><strong>Risk Factors:</strong> {{ report.detected_risk_factors | join(", ") if report.detected_risk_factors else "None" }}</p>
+</div>
+
+{% if report.conversation_transcript %}
+<div class="section">
+    <h2>Conversation Transcript</h2>
+    <div class="transcript">{{ report.conversation_transcript }}</div>
+</div>
+{% endif %}
+
+<div class="footer">
+    Generated by 2020 AI Agent v1.0.0 — NO MEDICAL ADVICE — All decisions by certified responders.
+</div>
+
+{% elif reports %}
+<div class="header">
+    <h1>&#9888; Triage Summary</h1>
+    <div class="meta">
+        <div><strong>Total:</strong> {{ stats.total_reports }}</div>
+        <div><strong>Generated:</strong> {{ generated_at }}</div>
+    </div>
+</div>
+<div class="section">
+    <h2>Severity Distribution</h2>
+    <div class="bar-chart">
+        {% set max_count = stats.severity_distribution.values() | max if stats.severity_distribution.values() | max > 0 else 1 %}
+        {% for level, count in stats.severity_distribution.items() %}
+        <div class="bar-row">
+            <span class="bar-label">{{ level }}</span>
+            <div class="bar-track"><div class="bar-fill bar-{{ level }}" style="width: {{ (count / max_count * 100) | int }}%;">{{ count }}</div></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="section">
+    <h2>All Cases</h2>
+    <table>
+        <thead><tr><th>#</th><th>Severity</th><th>Patient</th><th>Source</th><th>Location</th><th>Priority</th><th>Callback</th><th>Time</th></tr></thead>
+        <tbody>
+        {% for r in reports %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td><span class="badge badge-{{ r.severity.value }}" style="padding:2px 6px;font-size:10px;">{{ r.severity.value }}</span></td>
+            <td>{{ r.patient_name or "—" }}</td>
+            <td>{{ r.input_source.value }}</td>
+            <td>{{ r.location or "—" }}</td>
+            <td>{{ r.estimated_response_priority }}</td>
+            <td>{{ r.callback_status.value }}</td>
+            <td>{{ r.timestamp[:19] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="footer">Generated by 2020 AI Agent v1.0.0 — NO MEDICAL ADVICE</div>
+{% endif %}
+
+</body>
+</html>

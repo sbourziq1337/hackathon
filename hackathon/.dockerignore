@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environment (secrets — loaded via env_file in compose)
+.env
+
+# Misc
+.vite/
+*.log
+*.zip
+*.tar.gz
+.DS_Store
+reports/*.pdf
+reports/*.json

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment variables (contains secrets!)
+.env
+
+# Reports generated at runtime
+reports/*.pdf
+reports/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (frontend)
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+# Misc
+*.zip
+*.tar.gz
+*.log
+.vite/
+
+# Docker
+docker-compose.override.yml

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2020 AI Agent — Authorized Access</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=3">
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <span class="logo-icon">⚕</span>
+            </div>
+            <h1>2020 AI Agent</h1>
+            <p class="login-subtitle">Authorized Personnel Only</p>
+            <p class="login-warning">This system is restricted to certified hospital staff, emergency dispatchers, and authorized agency personnel.</p>
+        </div>
+        <form class="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="Enter your username" autocomplete="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" required>
+            </div>
+            <div id="loginError" class="login-error" style="display:none"></div>
+            <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                <span class="btn-text">Sign In</span>
+                <span class="btn-loading" style="display:none">Authenticating...</span>
+            </button>
+        </form>
+        <div class="login-footer">
+            <p>Unauthorized access is prohibited and monitored.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN APP (hidden until auth) ═══════════════ -->
+<div id="appContainer" style="display:none;width:100%;">
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <span class="logo-icon">⚕</span>
+            <div>
+                <h1>Triage Agent</h1>
+                <span class="logo-sub">Responder Dashboard</span>
+            </div>
+        </div>
+    </div>
+    <nav class="nav">
+        <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+            <span class="nav-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-btn" data-tab="voice" onclick="switchTab('voice')">
+            <span class="nav-icon">🎙</span> Voice Interview
+            <span class="live-badge" id="voiceBadge" style="display:none">MIC</span>
+        </button>
+        <button class="nav-btn" data-tab="livefeed" onclick="switchTab('livefeed')">
+            <span class="nav-icon">📡</span> Live Feed
+            <span class="live-badge" id="liveBadge" style="display:none">LIVE</span>
+        </button>
+        <button class="nav-btn" data-tab="callbacks" onclick="switchTab('callbacks')">
+            <span class="nav-icon">📞</span> Callback Queue
+            <span class="count-badge" id="callbackBadge" style="display:none">0</span>
+        </button>
+        <button class="nav-btn" data-tab="intake" onclick="switchTab('intake')">
+            <span class="nav-icon">📝</span> Manual Intake
+        </button>
+        <button class="nav-btn" data-tab="history" onclick="switchTab('history')">
+            <span class="nav-icon">📋</span> All Reports
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-info" id="userInfo"></div>
+        <button class="btn btn-outline btn-sm" onclick="handleLogout()" style="width:100%;margin-top:0.5rem;">Sign Out</button>
+        <div class="status-indicator" style="margin-top:0.75rem;">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Checking...</span>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <header class="mobile-header">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <h1>⚕ Triage Dashboard</h1>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section class="tab-content active" id="tab-dashboard">
+        <div class="page-header">
+            <h2>Operations Dashboard</h2>
+            <p>Real-time overview. Use the Voice Interview to start triaging a case.</p>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card stat-total"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Cases</div></div>
+            <div class="stat-card stat-critical"><div class="stat-number" id="statCritical">0</div><div class="stat-label">Critical</div></div>
+            <div class="stat-card stat-high"><div class="stat-number" id="statHigh">0</div><div class="stat-label">High</div></div>
+            <div class="stat-card stat-moderate"><div class="stat-number" id="statModerate">0</div><div class="stat-label">Moderate</div></div>
+            <div class="stat-card stat-low"><div class="stat-number" id="statLow">0</div><div class="stat-label">Low</div></div>
+        </div>
+        <div class="card">
+            <h3>Severity Distribution</h3>
+            <div id="chartBars" class="chart-bars"></div>
+        </div>
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <h3 style="margin:0;">Recent Incoming Cases</h3>
+                <span class="sse-status" id="sseStatus">Connecting...</span>
+            </div>
+            <div id="recentReports" class="recent-list"></div>
+        </div>
+    </section>
+
+    <!-- VOICE INTERVIEW -->
+    <section class="tab-content" id="tab-voice">
+        <div class="page-header">
+            <h2>AI Voice Triage Interview</h2>
+            <p>Have a natural conversation with the AI. It speaks through your speakers, listens via your microphone, and collects emergency data through dialogue.</p>
+        </div>
+
+        <!-- IDLE STATE -->
+        <div class="card voice-interview-card" id="voiceIdleState">
+            <div class="voice-hero">
+                <div class="mic-icon-big">🎙</div>
+                <h3>Start a New Conversation</h3>
+                <p>The AI will have a natural conversation with you to collect emergency information. Speak freely — it understands context, asks follow-ups, and adapts to your responses. No rigid yes/no scripts.</p>
+                <div class="voice-mode-toggle">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="voiceModeToggle" checked>
+                        <span class="toggle-text">Voice mode (speak &amp; listen)</span>
+                    </label>
+                    <span class="toggle-hint">Uncheck to type instead of speak</span>
+                </div>
+                <button class="btn btn-primary btn-lg" id="startInterviewBtn" onclick="startVoiceInterview()">
+                    Start Conversation
+                </button>
+            </div>
+        </div>
+
+        <!-- ACTIVE CONVERSATION -->
+        <div id="voiceActiveState" style="display:none;">
+            <div class="chat-container card">
+                <div class="chat-header">
+                    <div class="chat-header-left">
+                        <span class="pulse-dot" style="margin-right:0.25rem;"></span>
+                        <span>Live Triage Conversation</span>
+                    </div>
+                    <div class="chat-header-right">
+                        <span class="chat-turn-count" id="chatTurnCount">Turn 0</span>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <div class="ai-speaking-indicator" id="aiSpeakingIndicator" style="display:none;">
+                        <div class="sound-wave"><span></span><span></span><span></span><span></span><span></span></div>
+                        <span>AI is speaking...</span>
+                    </div>
+                    <div class="mic-status" id="micStatus" style="display:none;">
+                        <div class="mic-pulse"></div>
+                        <span>Listening... speak now</span>
+                    </div>
+                    <div class="chat-input-row" id="chatInputRow">
+                        <input type="text" id="chatTextInput" placeholder="Type your message or click the mic..." onkeydown="if(event.key==='Enter')sendTextMessage()">
+                        <button class="btn btn-mic" id="micBtn" onclick="toggleMic()" title="Hold to speak">
+                            <span id="micBtnIcon">🎙</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="sendTextMessage()" id="sendBtn">Send</button>
+                    </div>
+                </div>
+            </div>
+            <div class="interview-controls" style="margin-top:0.75rem;">
+                <button class="btn btn-outline" onclick="endConversation()">End &amp; Classify Now</button>
+                <button class="btn btn-outline" style="border-color:var(--critical);color:var(--critical);" onclick="cancelInterview()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- COMPLETE STATE -->
+        <div class="card voice-interview-card" id="voiceCompleteState" style="display:none;">
+            <div id="voiceResult"></div>
+            <div style="text-align:center;margin-top:1.5rem;">
+                <button class="btn btn-primary" onclick="resetVoiceInterview()">Start Another Conversation</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIVE FEED -->
+    <section class="tab-content" id="tab-livefeed">
+        <div class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h2><span class="pulse-dot"></span> Live Incoming Cases</h2>
+                    <p>Cases appear in real-time as they are triaged via voice or manual intake.</p>
+                </div>
+                <div class="header-actions">
+                    <span class="sse-status" id="sseStatus2">Connecting...</span>
+                </div>
+            </div>
+        </div>
+        <div id="liveFeedList" class="live-feed">
+            <div class="empty-state"><div class="empty-icon">📡</div><p>Waiting for incoming cases...</p></div>
+        </div>
+    </section>
+
+    <!-- CALLBACK QUEUE -->
+    <section class="tab-content" id="tab-callbacks">
+        <div class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h2>Callback Queue</h2>
+                    <p>Cases that need a certified human responder to follow up. Sorted by priority.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="loadCallbacks()">Refresh</button>
+                </div>
+            </div>
+        </div>
+        <div id="callbackList" class="live-feed">
+            <div class="loading">Loading...</div>
+        </div>
+    </section>
+
+    <!-- MANUAL INTAKE -->
+    <section class="tab-content" id="tab-intake">
+        <div class="page-header">
+            <h2>Manual Intake Form</h2>
+            <p>For reports received via text, radio, or in-person. Fill the structured form below.</p>
+        </div>
+        <form id="intakeForm" class="card" onsubmit="submitIntake(event)">
+            <h3>Step 1: Immediate Safety</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Is the person conscious?</label>
+                    <select id="fConscious"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Is the person breathing?</label>
+                    <select id="fBreathing"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Heavy bleeding?</label>
+                    <select id="fBleeding"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                </div>
+            </div>
+            <h3>Step 2: Patient Information</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Full Name</label><input type="text" id="fName" placeholder="Patient name"></div>
+                <div class="form-group"><label>Age</label><input type="number" id="fAge" min="0" max="150" placeholder="e.g. 35"></div>
+                <div class="form-group"><label>Gender</label><select id="fGender"><option value="">—</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+            </div>
+            <h3>Step 3: Location</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Exact Location / Address</label><input type="text" id="fLocation" placeholder="e.g. Building C, Zone 4"></div>
+                <div class="form-group"><label>Trapped?</label><select id="fTrapped"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="form-group"><label>Indoor/Outdoor</label><select id="fIndoor"><option value="">—</option><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option></select></div>
+            </div>
+            <h3>Step 4: Situation</h3>
+            <div class="form-group">
+                <label>What happened? <span class="required">*</span></label>
+                <textarea id="fSituation" rows="4" placeholder="Describe the emergency situation..." required></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Disaster Type</label><select id="fDisaster"><option value="">—</option><option value="earthquake">Earthquake</option><option value="flood">Flood</option><option value="hurricane">Hurricane</option><option value="fire">Fire</option><option value="explosion">Explosion</option><option value="building_collapse">Building Collapse</option><option value="other">Other</option></select></div>
+                <div class="form-group"><label>Number of Victims</label><input type="number" id="fVictims" min="0" placeholder="e.g. 3"></div>
+                <div class="form-group"><label>Environmental Dangers</label><input type="text" id="fDangers" placeholder="e.g. fire, flood water"></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg" id="intakeBtn">
+                <span class="btn-text">Submit & Classify</span>
+                <span class="btn-loading" style="display:none">Processing...</span>
+            </button>
+        </form>
+        <div id="intakeResult" class="result-card" style="display:none"></div>
+    </section>
+
+    <!-- ALL REPORTS -->
+    <section class="tab-content" id="tab-history">
+        <div class="page-header">
+            <div class="page-header-row">
+                <div><h2>All Reports</h2><p>Full history of all triaged cases.</p></div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="downloadSummaryPDF()">Summary PDF</button>
+                    <button class="btn btn-outline" onclick="loadReports()">Refresh</button>
+                </div>
+            </div>
+        </div>
+        <div class="card filters-bar">
+            <div class="form-row">
+                <div class="form-group"><label>Severity</label><select id="filterSeverity" onchange="loadReports()"><option value="">All</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MODERATE">MODERATE</option><option value="LOW">LOW</option></select></div>
+                <div class="form-group"><label>Source</label><select id="filterSource" onchange="loadReports()"><option value="">All</option><option value="text">Text</option><option value="voice_upload">Voice</option><option value="telegram">Telegram</option></select></div>
+                <div class="form-group"><label>Callback</label><select id="filterCallback" onchange="loadReports()"><option value="">All</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div>
+            </div>
+        </div>
+        <div id="reportsList" class="reports-list"><div class="loading">Loading...</div></div>
+    </section>
+</main>
+
+</div><!-- /appContainer -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<script src="/static/app.js?v=3"></script>
+</body>
+</html>

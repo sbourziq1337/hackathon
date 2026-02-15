@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Dark theme (default) */
+  :root,
+  .dark {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 199 89% 48%;
+    --accent-foreground: 220 20% 7%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 16% 18%;
+    --input: 220 16% 18%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.5rem;
+
+    /* Severity: red → orange → yellow → green */
+    --severity-critical: 0 85% 50%;
+    --severity-severe: 28 95% 55%;
+    --severity-moderate: 48 95% 50%;
+    --severity-mild: 142 65% 42%;
+
+    --severity-critical-glow: 0 85% 50% / 0.35;
+    --severity-severe-glow: 28 95% 55% / 0.35;
+    --severity-moderate-glow: 48 95% 50% / 0.25;
+    --severity-mild-glow: 142 65% 42% / 0.25;
+
+    --surface-elevated: 220 18% 13%;
+    --surface-overlay: 220 20% 9%;
+
+    --sidebar-background: 220 20% 5%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 12%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 16% 14%;
+    --sidebar-ring: 199 89% 48%;
+  }
+
+  /* Light theme */
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 199 89% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 220 20% 18%;
+
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 42%;
+
+    --accent: 199 89% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
+    --ring: 199 89% 42%;
+
+    --severity-critical: 0 85% 50%;
+    --severity-severe: 28 95% 55%;
+    --severity-moderate: 48 95% 50%;
+    --severity-mild: 142 65% 42%;
+
+    --severity-critical-glow: 0 85% 50% / 0.2;
+    --severity-severe-glow: 28 95% 55% / 0.2;
+    --severity-moderate-glow: 48 95% 50% / 0.15;
+    --severity-mild-glow: 142 65% 42% / 0.15;
+
+    --surface-elevated: 0 0% 100%;
+    --surface-overlay: 220 14% 96%;
+
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 220 20% 15%;
+    --sidebar-primary: 199 89% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 94%;
+    --sidebar-accent-foreground: 220 20% 18%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 199 89% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .severity-badge-critical {
+    @apply bg-[hsl(var(--severity-critical))] text-white font-semibold;
+    box-shadow: 0 0 12px hsl(var(--severity-critical-glow));
+  }
+  .severity-badge-severe {
+    @apply bg-[hsl(var(--severity-severe))] text-white font-semibold;
+    box-shadow: 0 0 12px hsl(var(--severity-severe-glow));
+  }
+  .severity-badge-moderate {
+    @apply bg-[hsl(var(--severity-moderate))] text-black font-semibold;
+    box-shadow: 0 0 10px hsl(var(--severity-moderate-glow));
+  }
+  .severity-badge-mild {
+    @apply bg-[hsl(var(--severity-mild))] text-white font-semibold;
+    box-shadow: 0 0 10px hsl(var(--severity-mild-glow));
+  }
+
+  .card-glow {
+    @apply border border-border;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .card-glow:hover {
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+  }
+
+  .pulse-critical {
+    animation: pulse-red 2s ease-in-out infinite;
+  }
+
+  .stat-value {
+    @apply text-2xl font-bold font-mono tracking-tight;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground hover:bg-secondary;
+  }
+  .nav-link-active {
+    @apply text-primary bg-secondary;
+    box-shadow: inset 3px 0 0 hsl(var(--primary));
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Leaflet overrides — dark */
+.leaflet-container {
+  background: hsl(220 20% 7%) !important;
+  border-radius: var(--radius);
+}
+.dark .leaflet-container {
+  background: hsl(220 20% 7%) !important;
+}
+
+/* Light theme: light gray base + gray gradient overlay */
+.light .leaflet-container {
+  background: linear-gradient(145deg, #e5e7eb 0%, #d1d5db 35%, #9ca3af 70%, #6b7280 100%) !important;
+  border-radius: var(--radius);
+}
+.light .leaflet-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, rgba(229, 231, 235, 0.25) 0%, rgba(209, 213, 219, 0.35) 50%, rgba(156, 163, 175, 0.3) 100%);
+  pointer-events: none;
+  z-index: 500;
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--card)) !important;
+}
+
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+  background: hsl(199 89% 48% / 0.3) !important;
+}
+.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+  background: hsl(199 89% 48% / 0.7) !important;
+  color: white !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 600 !important;
+}
