@@ -175,10 +175,4 @@ hackathon/
 └── README.md
 ```
 
-## Running Tests
 
-```bash
-source venv/bin/activate
-uvicorn app.main:app --port 8000 &
-python tests/test_integration.py
-```
